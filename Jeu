@@ -1,0 +1,87 @@
+// Ensure Plateau and IHM classes are imported or globally available
+// For example, if using ES6 modules:
+// import { Plateau } from './Plateau.js';
+// import { IHM } from './IHM.js';
+// import { Ville } from './Ville.js';
+// import { Etat } from './Etat.js';
+// import { Route } from './Route.js';
+
+/**
+ * The Jeu class represents the main game application.
+ * It manages the game board and the user interface.
+ */
+class Jeu {
+  /**
+   * The game board.
+   * @type {Plateau}
+   */
+  plateau;
+
+  /**
+   * The game's user interface (IHM).
+   * @type {IHM}
+   */
+  ihm;
+
+  /**
+   * Creates an instance of the Ticket to Ride game.
+   * Initializes the game board and the human-machine interface (IHM).
+   */
+  constructor() {
+    // These assume Plateau and IHM classes are defined and accessible.
+    // In a real application, you might pass dependencies here.
+    this.plateau = new Plateau();
+    this.ihm = new IHM();
+  }
+
+  // ACCESSEURS (Getters)
+
+  /**
+   * Returns the game board.
+   * @returns {Plateau} The game board.
+   */
+  getPlateau() {
+    return this.plateau;
+  }
+
+  /**
+   * Displays the game board and its elements.
+   * This method initializes the game window and draws all states, cities, and routes.
+   */
+  affichePlateau() {
+    // Initialize the game window
+    this.ihm.afficheFenetre("Les Aventuriers du Rail", 1366, 768, "lightGray");
+
+    // Draw all states
+    for (const etat of this.plateau.getEtats()) {
+      this.ihm.dessineEtat(etat);
+    }
+
+    // Draw all cities
+    for (const ville of this.plateau.getVilles()) {
+      this.ihm.dessineVille(ville);
+    }
+
+    // Draw all routes
+    for (const route of this.plateau.getRoutes()) {
+      this.ihm.dessineRoute(route);
+    }
+  }
+
+  /**
+   * Main method for the Jeu class.
+   * Launches the Ticket to Ride game and implements the gameplay flow.
+   * In a browser environment, this would typically be called after the DOM is ready.
+   */
+  static main() {
+    const jeu = new Jeu(); // Create an instance of the game
+    jeu.affichePlateau(); // Call the method to display the board
+  }
+}
+
+// To run the game in a browser, you would typically call Jeu.main()
+// after the HTML document is fully loaded.
+// Example for a simple HTML setup:
+// document.addEventListener('DOMContentLoaded', () => {
+//   Jeu.main();
+// });

@@ -1,0 +1,160 @@
+/**
+ * The Plateau class represents the game board for Ticket to Ride.
+ * It consists of a set of {@link Etat} objects, a set of {@link Ville} objects,
+ * and a set of {@link Route} objects.
+ */
+class Plateau {
+  /**
+   * The list of states on the game board.
+   * @type {Etat[]}
+   */
+  etats;
+
+  /**
+   * The list of cities on the game board.
+   * @type {Ville[]}
+   */
+  villes;
+
+  /**
+   * The list of routes on the game board.
+   * @type {Route[]}
+   */
+  routes;
+
+  /**
+   * Creates the game board.
+   * Assumes `Donnees` object (with ETATS, VILLES, ROUTES arrays) and `Etat`, `Ville`, `Route` classes are defined globally or imported.
+   */
+  constructor() {
+    this.initialiseEtats();
+    this.initialiseVilles();
+    this.initialiseRoutes();
+  }
+
+  //--- ACCESSEURS ---
+
+  /**
+   * Returns the states on the game board.
+   * @returns {Etat[]} An array of Etat objects.
+   */
+  getEtats() {
+    return this.etats;
+  }
+
+  /**
+   * Returns the cities on the game board.
+   * @returns {Ville[]} An array of Ville objects.
+   */
+  getVilles() {
+    return this.villes;
+  }
+
+  /**
+   * Returns the routes on the game board.
+   * @returns {Route[]} An array of Route objects.
+   */
+  getRoutes() {
+    return this.routes;
+  }
+
+  //--- INITIALIZATION METHODS ---
+
+  /**
+   * Initializes all states for the game from the provided data (`Donnees.ETATS`).
+   * The data is transformed to extract the state name and its "contour".
+   */
+  initialiseEtats() {
+    // Ensure Donnees exists and has ETATS
+    if (typeof Donnees === 'undefined' || !Donnees.ETATS) {
+      console.error("Error: 'Donnees.ETATS' is not defined. Cannot initialize states.");
+      this.etats = []; // Initialize as empty array to prevent further errors
+      return;
+    }
+
+    this.etats = new Array(Donnees.ETATS.length);
+    for (let i = 0; i < Donnees.ETATS.length; i++) {
+      // Assuming Donnees.ETATS[i][0] is the name and Donnees.ETATS[i][1] is the contour string
+      this.etats[i] = new Etat(Donnees.ETATS[i][0], Donnees.ETATS[i][1]);
+    }
+  }
+
+  /**
+   * Initializes all cities for the game from the provided data (`Donnees.VILLES`).
+   * This version handles city names with spaces.
+   */
+  initialiseVilles() {
+    // Ensure Donnees exists and has VILLES
+    if (typeof Donnees === 'undefined' || !Donnees.VILLES) {
+      console.error("Error: 'Donnees.VILLES' is not defined. Cannot initialize cities.");
+      this.villes = []; // Initialize as empty array
+      return;
+    }
+
+    this.villes = new Array(Donnees.VILLES.length);
+    for (let i = 0; i < Donnees.VILLES.length; i++) {
+      const donneesVille = Donnees.VILLES[i];
+      // Find the last space, then the second to last space to isolate name, x, and y
+      const index2 = donneesVille.lastIndexOf(' '); // Last space before y
+      const index1 = donneesVille.lastIndexOf(' ', index2 - 1); // Space before x
+
+      const nom = donneesVille.substring(0, index1);
+      // parseFloat is robust for converting strings to numbers
+      const x = parseFloat(donneesVille.substring(index1 + 1, index2));
+      const y = parseFloat(donneesVille.substring(index2 + 1));
+
+      this.villes[i] = new Ville(nom, x, y);
+    }
+  }
+
+  /**
+   * Initializes all routes for the game from the provided data (`Donnees.ROUTES`).
+   * It relies on the `rechercheVille` method to find city objects by name.
+   */
+  initialiseRoutes() {
+    // Ensure Donnees exists and has ROUTES
+    if (typeof Donnees === 'undefined' || !Donnees.ROUTES) {
+      console.error("Error: 'Donnees.ROUTES' is not defined. Cannot initialize routes.");
+      this.routes = []; // Initialize as empty array
+      return;
+    }
+
+    this.routes = new Array(Donnees.ROUTES.length);
+    for (let i = 0; i < Donnees.ROUTES.length; i++) {
+      const arriveVille = this.rechercheVille(Donnees.ROUTES[i][0]);
+      const departVille = this.rechercheVille(Donnees.ROUTES[i][1]);
+      const couleur = Donnees.ROUTES[i][2];
+
+      // It's good practice to handle cases where cities might not be found
+      if (!arriveVille || !departVille) {
+        console.warn(`Warning: Could not find one or both cities for route data: ${Donnees.ROUTES[i]}. This route will be skipped.`);
+        // You might want to push a null or a default route, or throw an error depending on desired behavior
+        continue; // Skip this iteration if cities are missing
+      }
+
+      this.routes[i] = new Route(arriveVille, departVille, couleur);
+    }
+  }
+
+  //--- UTILITY METHODS ---
+
+  /**
+   * Searches for a city by its name within the `villes` array.
+   * @param {string} nom - The name of the city to search for.
+   * @returns {Ville | null} The Ville object if found, otherwise `null`.
+   */
+  rechercheVille(nom) {
+    // Using `find` is more idiomatic JavaScript for searching arrays
+    return this.villes.find(ville => ville.getNom() === nom);
+  }
+
+  /**
+   * Searches for a route by its "name" (combination of city names) within the `routes` array.
+   * @param {string} nom - The name of the route to search for (e.g., "Paris - Berlin").
+   * @returns {Route | null} The Route object if found, otherwise `null`.
+   */
+  rechercheRoute(nom) {
+    // Using `find` for routes as well
+    return this.routes.find(route => route.getNom() === nom);
+  }
+}
