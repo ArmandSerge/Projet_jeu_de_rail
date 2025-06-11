@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Les Aventuriers du Rail - Démo</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: lightgray;
+    }
+    canvas {
+      display: block;
+      background-color: white;
+      margin: 0 auto;
+      border: 1px solid black;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="1366" height="768"></canvas>
+
+  <script>
+    class Ville {
+      constructor(nom, x, y) {
+        this.nom = nom;
+        this.x = x;
+        this.y = y;
+      }
+      getX() { return this.x; }
+      getY() { return this.y; }
+      getNom() { return this.nom; }
+      versChaine() { return `${this.nom} (${this.x},${this.y})`; }
+    }
+
+    class Route {
+      constructor(ville_arrivee, ville_depart, couleur) {
+        this.couleur = couleur;
+        this.ville_arrivee = ville_arrivee;
+        this.ville_depart = ville_depart;
+      }
+      getCouleur() { return this.couleur; }
+      getVilleArrivee() { return this.ville_arrivee; }
+      getVilleDepart() { return this.ville_depart; }
+      getNom() { return `${this.ville_arrivee.getNom()} - ${this.ville_depart.getNom()}`; }
+      getLongueur() {
+        const dmin = Math.sqrt(Math.pow(94 - 88, 2) + Math.pow(15 - 52, 2));
+        const dmax = 1000.0;
+        const x = this.ville_arrivee.getX() - this.ville_depart.getX();
+        const y = this.ville_arrivee.getY() - this.ville_depart.getY();
+        let d = Math.sqrt(x * x + y * y);
+        let normalized = (d - dmin) / (dmax - dmin);
+        let ratio = Math.floor(1 + (normalized * 5));
+        return Math.min(6, Math.max(1, ratio));
+      }
+      versChaine() {
+        return `${this.getNom()} /${this.getCouleur()}-${this.getLongueur()}`;
+      }
+      getNombrePoints() {
+        const normalized = (this.getLongueur() - 1) / 5;
+        return Math.floor(1 + (normalized * 14));
+      }
+    }
+
+    class Plateau {
+      constructor() {
+        this.villes = [
+          new Ville("Paris", 200, 300),
+          new Ville("Berlin", 500, 250),
+          new Ville("Madrid", 150, 500)
+        ];
+        this.routes = [
+          new Route(this.villes[0], this.villes[1], "red"),
+          new Route(this.villes[1], this.villes[2], "blue")
+        ];
+      }
+      getVilles() { return this.villes; }
+      getRoutes() { return this.routes; }
+      getEtats() { return []; } // Optionnel pour cette démo
+    }
+
+    class IHM {
+      constructor() {
+        this.canvas = document.getElementById("canvas");
+        this.ctx = this.canvas.getContext("2d");
+      }
+
+      afficheFenetre(titre, largeur, hauteur, couleur) {
+        document.title = titre;
+        this.ctx.fillStyle = couleur;
+        this.ctx.fillRect(0, 0, largeur, hauteur);
+      }
+
+      dessineVille(ville) {
+        this.ctx.fillStyle = "black";
+        this.ctx.beginPath();
+        this.ctx.arc(ville.getX(), ville.getY(), 5, 0, 2 * Math.PI);
+        this.ctx.fill();
+        this.ctx.fillText(ville.getNom(), ville.getX() + 8, ville.getY() - 8);
+      }
+
+      dessineRoute(route) {
+        this.ctx.strokeStyle = route.getCouleur();
+        this.ctx.lineWidth = 4;
+        this.ctx.beginPath();
+        this.ctx.moveTo(route.getVilleDepart().getX(), route.getVilleDepart().getY());
+        this.ctx.lineTo(route.getVilleArrivee().getX(), route.getVilleArrivee().getY());
+        this.ctx.stroke();
+      }
+
+      dessineEtat(etat) {
+        // Éventuellement : dessiner des contours de régions
+      }
+    }
+
+    class Jeu {
+      constructor() {
+        this.plateau = new Plateau();
+        this.ihm = new IHM();
+      }
+
+      getPlateau() { return this.plateau; }
+
+      affichePlateau() {
+        this.ihm.afficheFenetre("Les Aventuriers du Rail", 1366, 768, "lightGray");
+        for (const ville of this.plateau.getVilles()) {
+          this.ihm.dessineVille(ville);
+        }
+        for (const route of this.plateau.getRoutes()) {
+          this.ihm.dessineRoute(route);
+        }
+      }
+
+      static main() {
+        const jeu = new Jeu();
+        jeu.affichePlateau();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      Jeu.main();
+    });
+  </script>
+</body>
+</html>
